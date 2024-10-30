@@ -12,9 +12,13 @@
   "dependencies": {
     "@react-three/drei": "^9.115.0",
     "@react-three/fiber": "^8.17.10",
+    "hotkeys-js": "^3.13.7",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.453.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hot-keys": "^2.7.3",
+    "shosho": "^1.4.3",
     "three": "^0.169.0"
   },
   "devDependencies": {
