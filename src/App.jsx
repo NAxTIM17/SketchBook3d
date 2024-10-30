@@ -14,7 +14,7 @@ function App() {
     rotate: false,
   });
   const [activeShortcut, setActiveShortcut] = useState(undefined);
-  const { scene } = useLoader(GLTFLoader, "BookNoMaterial.gltf");
+  const { scene } = useLoader(GLTFLoader, "Book.gltf");
   const textureRef = useRef();
   const canvasRef = useRef();
   const raycaster = new THREE.Raycaster();
@@ -78,8 +78,8 @@ function App() {
   },[shortcuts]);
   console.log("active shortcut",activeShortcut)
 
-  const Book = () => {
-    const { scene } = useLoader(GLTFLoader, "BookNoMaterial.gltf");
+  const Table = () => {
+    const { scene } = useLoader(GLTFLoader, "Table.gltf");
     return <primitive object={scene} />;
   };
   
@@ -261,11 +261,7 @@ function App() {
               minDistance={1} // Distancia mínima de la cámara (zoom in máximo)
               maxDistance={5}
             />
-            <mesh position={[0, -0.1, 0]}>
-              <boxGeometry args={[55, 0.2, 55]} />
-              <meshPhongMaterial />
-            </mesh>
-            {/* <Book /> */}
+            <Table/>
             <PaintableModel />
           </Canvas>
         </div>
