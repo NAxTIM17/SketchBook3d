@@ -11,3 +11,4 @@
 - implementar la goma
 - la manito.
 - lazy stroke??
+- corregit el mirror en el modelo.
