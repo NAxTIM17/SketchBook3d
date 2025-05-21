@@ -23,7 +23,7 @@ function App() {
   const yRef = useRef(0);
   let points = [];
 
-  const onKeyDown = useCallback((keyName, e, handle) => {
+  const onKeyDown = useCallback((keyName) => {
     setActiveShortcut(keyName);
     switch (keyName) {
       case "shift+a":
@@ -51,7 +51,8 @@ function App() {
         break;
     }
   },[shortcuts]);
-  const onKeyUp = useCallback((keyName, e, handle) => {
+  
+  const onKeyUp = useCallback((keyName) => {
     setActiveShortcut(undefined);
     switch (keyName) {
       case "shift+a":
@@ -76,22 +77,38 @@ function App() {
         break;
     }
   },[shortcuts]);
-  console.log("active shortcut",activeShortcut)
 
   const Table = () => {
     const { scene } = useLoader(GLTFLoader, "Table.gltf");
     return <primitive object={scene} />;
   };
-  
+
+  const handlePointerMove = (event) => {
+      xRef.current = event.clientX;
+      yRef.current = event.clientY;
+  };
+
+  const handlePointerDown = () => {
+      isDrawingRef.current = true;
+  };
+
+  const handlePointerUp = () => {
+      points = [];
+      isDrawingRef.current = false;
+  };
+
+  const midPointBtw = (p1, p2) => {
+      return {
+        x: p1.x + (p2.x - p1.x) / 2,
+        y: p1.y + (p2.y - p1.y) / 2,
+      };
+  };
+
   const PaintableModel = () => {
-    const { mouse, camera, gl } = useThree();
-    console.log("isDrawing",isDrawingRef.current);
-    console.log("canvasRef",canvasRef)
-    
+    const { mouse, camera } = useThree();
     
     useEffect(() => {
       if(!canvasRef.current){
-        console.log("Refs",xRef, yRef)
         const canvas = document.createElement("canvas");
         canvas.width = 1024;
         canvas.height = 1024;
@@ -104,7 +121,6 @@ function App() {
         textureRef.current = texture;
         canvasRef.current = canvas;
         
-        console.log("textureRef",textureRef);
         
         // Traverse through the GLTF model and apply the texture to the materials
         scene.traverse((node) => {
@@ -119,27 +135,17 @@ function App() {
         window.addEventListener('pointerdown', handlePointerDown);
         window.addEventListener('pointermove', handlePointerMove);
         window.addEventListener('pointerup', handlePointerUp);
-        window.addEventListener('keydown', (e) => {
-          console.log(e)
-        })
       }
 
       return()=>{
         window.removeEventListener('pointerdown', handlePointerDown);
         window.addEventListener('pointermove', handlePointerMove);
         window.removeEventListener('pointerup', handlePointerUp);
-        window.addEventListener('keydown', (e) => {
-          console.log(e)
-        })
       }
 
     }, [scene]);
-    const midPointBtw = (p1, p2) => {
-      return {
-        x: p1.x + (p2.x - p1.x) / 2,
-        y: p1.y + (p2.y - p1.y) / 2,
-      };
-    };
+
+    
     // Function to paint on the texture based on UV coordinates
     const paintOnTexture = (uv, color) => {
       if (!isDrawingRef.current) return;
@@ -178,21 +184,9 @@ function App() {
 
       textureRef.current.needsUpdate = true;
     };
-    const handlePointerMove = (event) => {
-      console.log("Move");
-      xRef.current = event.clientX;
-      yRef.current = event.clientY;
-    };
-    const handlePointerDown = (event) => {
-      console.log("down");
-      isDrawingRef.current = true;
-    };
-    const handlePointerUp = (event) => {
-      console.log("up");
-      points = [];
-      isDrawingRef.current = false;
-    };
 
+
+    
     useFrame(() => {
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObject(scene, true);
