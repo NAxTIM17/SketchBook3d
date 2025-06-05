@@ -30,7 +30,7 @@ export const Book = ({ activeShortcut }) => {
     isDrawingRef.current = false;
 
     const canvas = canvasRef.current;
-    
+
     try {
       const dataURL = canvas.toDataURL();
       sessionStorage.setItem("canvasTexture", dataURL);
@@ -81,10 +81,7 @@ export const Book = ({ activeShortcut }) => {
       p1 = points[i];
       p2 = points[i + 1];
     }
-
     textureRef.current.needsUpdate = true;
-
-    
   };
 
   useEffect(() => {
