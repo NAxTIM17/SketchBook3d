@@ -3,7 +3,7 @@ import { Book } from "./components/book";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Pencil, Eraser, PenLine, Hand } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Hotkeys from "react-hot-keys";
 import { Table } from "./components/table";
 
@@ -14,6 +14,17 @@ function App() {
     rotate: false,
   });
   const [activeShortcut, setActiveShortcut] = useState(undefined);
+  const [isPaused, setIsPaused] = useState(false);
+  const actionRef = useRef();
+  const playingRef = useRef(false);
+  
+ const toggleAnimation = () => {
+  if (actionRef.current) {
+    actionRef.current.paused = false;
+    actionRef.current.play();
+    playingRef.current = true;
+  }
+  };
   
   const onKeyDown = useCallback((keyName) => {
     setActiveShortcut(keyName);
@@ -100,6 +111,9 @@ function App() {
                 size={30}
                 className="hover:bg-zinc-200 rounded-md p-1 cursor-pointer transition-all active:bg-zinc-300 active:scale-[.9] text-zinc-700"
               />
+              <div onClick={toggleAnimation} className="hover:bg-zinc-200 rounded-md p-1 cursor-pointer transition-all active:bg-zinc-300 active:scale-[.9] text-zinc-700">
+                Pause
+              </div>
             </div>
             <div className="bg-white h-10 flex justify-center items-center rounded-md p-2 select-none">
               <h1 className="font-bold">{activeShortcut}</h1>
@@ -107,7 +121,7 @@ function App() {
           </div>
           <Canvas>
             <ambientLight />
-            <PerspectiveCamera makeDefault fov={60} position={[0, 2, 0]} />
+            <PerspectiveCamera makeDefault fov={85} position={[0, 2, 0]} />
             <directionalLight />
             <OrbitControls
               enableRotate={shortcuts.rotate}
@@ -116,12 +130,9 @@ function App() {
               dampingFactor={0.5}
               target={[0, 0, 0]}
               minPolarAngle={0}
-              maxPolarAngle={Math.PI / 3.5}
-              minDistance={1} // Distancia mínima de la cámara (zoom in máximo)
-              maxDistance={5}
             />
             <Table />
-            <Book activeShortcut={activeShortcut} />
+            <Book actionRef={actionRef} playingRef={playingRef} activeShortcut={activeShortcut} />
           </Canvas>
         </div>
       </Hotkeys>

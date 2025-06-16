@@ -3,11 +3,19 @@ import { GLTFLoader } from "three/examples/jsm/Addons.js";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
-export const Book = ({ activeShortcut }) => {
+export const Book = ({ activeShortcut, actionRef, playingRef }) => {
   const { mouse, camera } = useThree();
-  const { scene } = useLoader(GLTFLoader, "Book.gltf");
+  const { scene, animations } = useLoader(GLTFLoader, "BookAnimationTest19_Chonky.glb");
   const textureRef = useRef();
   const canvasRef = useRef();
+
+  const mixerRef = useRef();
+  const frameCountRef = useRef(0);
+  
+  const framesPerStep = 10;
+  const frameRate = 30; // FPS de tu animación
+  const timePerStep = framesPerStep / frameRate;
+
   const raycaster = new THREE.Raycaster();
   const isDrawingRef = useRef(false);
   const xRef = useRef(0);
@@ -15,6 +23,8 @@ export const Book = ({ activeShortcut }) => {
   const [points, setPoints] = useState([]);
 
   console.log(activeShortcut);
+
+ 
 
   const handlePointerMove = (event) => {
     xRef.current = event.clientX;
@@ -88,8 +98,8 @@ export const Book = ({ activeShortcut }) => {
     console.log("Use Effect book");
     if (!canvasRef.current) {
       const canvas = document.createElement("canvas");
-      canvas.width = 1024;
-      canvas.height = 1024;
+      canvas.width = 4096;
+      canvas.height = 2048;
       const ctx = canvas.getContext("2d");
 
       const savedTextureData = sessionStorage.getItem("canvasTexture");
@@ -106,6 +116,7 @@ export const Book = ({ activeShortcut }) => {
           // Aplicar la textura al modelo
           scene.traverse((node) => {
             if (node.isMesh && node.material) {
+              node.material.side = THREE.DoubleSide; // 👈 ¡esto es lo importante!
               node.material.map = texture;
               node.material.needsUpdate = true;
             }
@@ -146,16 +157,47 @@ export const Book = ({ activeShortcut }) => {
     };
   }, [scene, activeShortcut]);
 
-  useFrame(() => {
+  useEffect(() => {
+    if (animations && animations.length > 0) {
+      const mixer = new THREE.AnimationMixer(scene);
+      const action = mixer.clipAction(animations[0]);
+      action.play(); // Podés recorrer todas si hay más de una
+      mixerRef.current = mixer;
+      actionRef.current = action;
+    }
+  }, [animations, scene, actionRef]);
+
+  useFrame((state, delta) => {
     raycaster.setFromCamera(mouse, camera);
+    raycaster.params.Points.threshold = 0.01;
     const intersects = raycaster.intersectObject(scene, true);
 
     if (intersects.length > 0) {
+      console.log("Puede pintar")
       const uv = intersects[0].uv;
       if (uv) {
         paintOnTexture(uv, "#2b2b2b");
       }
+    }else{
+      console.log("No puede pintar");
     }
+
+
+      // Control de animación por tiempo/frames
+  if (mixerRef.current && actionRef.current && playingRef.current) {
+    mixerRef.current.update(delta);
+
+    const currentFrameBlockStart = frameCountRef.current * timePerStep;
+    const nextFrameBlockEnd = (frameCountRef.current + 1) * timePerStep;
+
+    // Pausar si se pasó el tiempo límite del bloque actual
+    if (actionRef.current.time >= nextFrameBlockEnd) {
+      actionRef.current.paused = true;
+      actionRef.current.time = nextFrameBlockEnd; // Cortar exacto
+      playingRef.current = false;
+      frameCountRef.current += 1;
+    }
+  }
   });
-  return <primitive object={scene} />;
+  return <primitive object={scene} rotation={[0, Math.PI / -2, 0]} scale={[2, 2, 2]}/>;
 };
